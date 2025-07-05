@@ -1,0 +1,336 @@
+/* --- League Joe CSS-Only Theme for FusionAuth (LeagueJoe.com Signup Style, Custom Button/Background) --- */
+
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Exo 2', 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  background: #e3e2e8;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  color: #23272f;
+}
+
+/* Center the main content */
+.main-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100vw;
+  padding: 0;
+}
+
+/* Style the card (main form container) */
+.card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(43, 108, 176, 0.18), 0 1.5px 6px rgba(0,0,0,0.08);
+  max-width: 420px;
+  width: 100%;
+  padding: 48px 32px 32px 32px;
+  margin: 32px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.card h1, .card h2 {
+  font-family: 'Exo 2', 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  color: #23272f;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 32px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.form-group, .form-row {
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-family: 'Montserrat', 'Exo 2', 'Segoe UI', Arial, sans-serif;
+  color: #23272f;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 7px;
+  letter-spacing: 0.1px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+select {
+  font-family: 'Montserrat', 'Exo 2', 'Segoe UI', Arial, sans-serif;
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid #e1e5e9;
+  border-radius: 7px;
+  font-size: 16px;
+  background: #f7fafc;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #2b6cb0;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(43,108,176,0.10);
+}
+
+.button, button, input[type="submit"], .btn {
+  font-family: 'Exo 2', 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  background: #ff670c;
+  color: #fff;
+  border: none;
+  padding: 15px 0;
+  border-radius: 7px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  width: 100%;
+  margin-top: 10px;
+  box-shadow: 0 2px 8px rgba(255,103,12,0.10);
+  letter-spacing: 0.5px;
+}
+.button:hover, button:hover, input[type="submit"]:hover, .btn:hover {
+  background: #e65c00;
+  box-shadow: 0 4px 16px rgba(255,103,12,0.18);
+  transform: translateY(-1px) scale(1.01);
+}
+
+/* Checkbox and radio alignment */
+input[type="checkbox"], input[type="radio"] {
+  margin-right: 8px;
+  transform: scale(1.15);
+}
+
+/* Error, success, info messages */
+.error, .alert-danger {
+  color: #e74c3c;
+  background: #fdf2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.success, .alert-success {
+  color: #059669;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.info, .alert-info {
+  color: #1e40af;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Links and legal text */
+a {
+  color: #2b6cb0;
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 600;
+}
+a:hover {
+  color: #225a99;
+  text-decoration: underline;
+}
+
+.legal, .footer, .terms {
+  color: #888;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 28px;
+  line-height: 1.6;
+  font-family: 'Montserrat', 'Exo 2', 'Segoe UI', Arial, sans-serif;
+}
+.legal a, .footer a, .terms a {
+  color: #2b6cb0;
+  font-weight: 600;
+  margin: 0 4px;
+}
+
+/* Hide FusionAuth logo if desired */
+.fusion-auth-logo, .app-header { display: none !important; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .card {
+    padding: 20px 4px;
+    max-width: 98vw;
+  }
+  .main-content {
+    padding: 0;
+  }
+  .card h1, .card h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Target FusionAuth's OAuth specific styling */
+.oauth-providers,
+.fusion-auth-form .oauth-providers {
+  margin-bottom: 20px;
+}
+
+.oauth-provider,
+.fusion-auth-form .oauth-provider {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  text-decoration: none;
+  text-align: center;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.oauth-provider:hover,
+.fusion-auth-form .oauth-provider:hover {
+  border-color: #667eea;
+  background: #f8fafc;
+}
+
+/* Target FusionAuth's divider */
+.divider,
+.fusion-auth-form .divider {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.divider::before,
+.fusion-auth-form .divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e1e5e9;
+}
+
+.divider span,
+.fusion-auth-form .divider span {
+  background: white;
+  padding: 0 15px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Target FusionAuth's progress bar */
+.progress-bar,
+.fusion-auth-form .progress-bar {
+  background: #e1e5e9;
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.progress-bar div,
+.fusion-auth-form .progress-bar div {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Custom League Joe branding */
+.league-joe-brand {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.league-joe-brand h1 {
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.league-joe-brand p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  margin: 10px 0 0 0;
+}
+
+/* Additional FusionAuth specific overrides */
+.fusion-auth-main {
+  background: transparent;
+}
+
+.fusion-auth-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Target FusionAuth's form validation messages */
+.field-error,
+.fusion-auth-form .field-error {
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Target FusionAuth's help text */
+.help-text,
+.fusion-auth-form .help-text {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Target FusionAuth's required field indicators */
+.required,
+.fusion-auth-form .required {
+  color: #e74c3c;
+}
+
+/* Target FusionAuth's form sections */
+.form-section,
+.fusion-auth-form .form-section {
+  margin-bottom: 30px;
+}
+
+/* Target FusionAuth's button groups */
+.btn-group,
+.fusion-auth-form .btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-group .btn,
+.fusion-auth-form .btn-group .btn {
+  flex: 1;
+} 

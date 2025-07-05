@@ -1,0 +1,87 @@
+services:
+
+  # Mailcatcher is a nice SMTP server that can be used for development and testing. You'll need to configure FusionAuth
+  # to use Mailcatcher (or use a Kickstart file that points the SMTP configuration to localhost:1025).
+  mailcatcher:
+    image: sj26/mailcatcher
+    container_name: mailcatcher
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    healthcheck:
+      interval: 10s
+      retries: 80
+      test: wget -q -O /dev/null http://mailcatcher:1080/
+    networks:
+      leaguejoe:
+        aliases:
+          - mailcatcher
+
+  fusionauth-db:
+    image: postgres:15
+    container_name: fusionauth-db
+    environment:
+      POSTGRES_USER: fusionadmin
+      POSTGRES_PASSWORD: FusionAdminPass123!
+      POSTGRES_DB: fusionauth
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fusionadmin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      leaguejoe:
+        aliases:
+          - fusionauth-db
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+  fusionauth:
+    image: fusionauth/fusionauth-app:latest
+    container_name: fusionauth
+    ports:
+      - 9011:9011
+      - 9012:9012
+    environment:
+      - DATABASE_URL=jdbc:postgresql://fusionauth-db:5432/fusionauth
+      - DATABASE_ROOT_USER=fusionadmin
+      - DATABASE_ROOT_PASSWORD=FusionAdminPass123!
+      - DATABASE_USER=fusionauth
+      - DATABASE_PASSWORD=fusionauth
+      
+      # Skip Setup Wizard
+      - FUSIONAUTH_SETUP_REQUIRED=false
+      
+      # Kickstart Configuration
+      - FUSIONAUTH_APP_KICKSTART_FILE=/usr/local/fusionauth/kickstart/kickstart.json
+      - FUSIONAUTH_APP_MAINTENANCE_MODE_DATABASE_LOCK_ENABLED=false
+      
+      # Runtime Configuration
+      - FUSIONAUTH_APP_RUNTIME_MODE=development
+      
+      # Search Configuration
+      - SEARCH_TYPE=database
+    depends_on:
+      fusionauth-db:
+        condition: service_healthy
+      mailcatcher:
+        condition: service_healthy
+    healthcheck:
+      test: curl --silent --fail http://localhost:9012/api/status -o /dev/null -w "%{http_code}"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      leaguejoe:
+        aliases:
+          - fusionauth
+    volumes:
+      - ./kickstart-local.json:/usr/local/fusionauth/kickstart/kickstart.json:ro
+      - ./../leaguejoe-password-encryptor/leaguejoe-password-encryption-1.0.1.jar:/usr/local/fusionauth/plugins/leaguejoe-password-encryption-1.0.1.jar:ro
+      - ./fusionauth-local.properties:/usr/local/fusionauth/config/fusionauth.properties:ro
+      - ./leaguejoe-css-only-theme.css:/usr/local/fusionauth/kickstart/leaguejoe-css-only-theme.css:ro
+
+networks:
+  leaguejoe:
+    name: leaguejoe-network

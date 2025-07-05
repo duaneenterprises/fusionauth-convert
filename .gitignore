@@ -1,0 +1,7 @@
+.env
+.vscode/
+ImportUsers/
+local_setup/
+server_setup/
+**/errorlog
+fa_lj_template/

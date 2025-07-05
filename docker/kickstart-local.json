@@ -1,0 +1,264 @@
+{
+  "variables": {
+    "defaultTenantId": "7356c516-025c-61f5-21b8-05a0d6319a8a",
+    "leagueJoeLocalAppId": "45562ca3-d36c-4d0a-af6f-c0c5abfffffd",
+    "client_secret": "1d6c464b-4e84-4a06-96e1-7c55b22d1522",
+    "leagueJoeLocalTenantId": "#{UUID()}",
+    "themeId": "#{UUID()}",
+    "userInfoPopulateLambdaId": "#{UUID()}",
+    "roleGlobalAdmin": "#{UUID()}",
+    "roleRookie": "#{UUID()}",
+    "roleCoach": "#{UUID()}",
+    "rolePlayer": "#{UUID()}",
+    "adminId": "#{UUID()}",
+    "adminEmail": "duane+leaguejoe@duaneenterprises.com",
+    "adminPassword": "Password1!",
+    "adminUsername": "fusionadmin"
+  },
+  "apiKeys": [
+    {
+      "key": "qmYikM57ADP1pUl3lEZlO6DBu-3ah6RGcU0iWHeF5JlxrOs-vtOJLQBD",
+      "description": "Standard development API key"
+    }
+  ],
+  "requests": [
+    {
+      "method": "POST",
+      "url": "/api/theme/#{themeId}",
+      "body": {
+        "sourceThemeId": "75a068fd-e94b-451a-9aeb-3ddb9a3b5987",
+        "theme": {
+          "name": "League Joe CSS-Only Theme"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "url": "/api/theme/#{themeId}",
+      "body": {
+        "theme": {
+          "stylesheet": "@{leaguejoe-css-only-theme.css}"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/lambda/#{userInfoPopulateLambdaId}",
+      "body": {
+        "lambda": {
+          "id": "#{userInfoPopulateLambdaId}",
+          "name": "User Info Populate Lambda",
+          "type": "UserInfoPopulate",
+          "body": "function populate(user) {\n  return JSON.stringify(user);\n}"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/tenant/#{leagueJoeLocalTenantId}",
+      "body": {
+        "tenant": {
+          "id": "#{leagueJoeLocalTenantId}",
+          "name": "League Joe Local",
+          "issuer": "leaguejoe.local",
+          "emailConfiguration": {
+            "host": "localhost",
+            "port": 1025,
+            "defaultFromName": "League Joe Local",
+            "defaultFromEmail": "noreply@leaguejoe.local",
+            "debug": true,
+            "security": "NONE",
+            "verifyEmail": false,
+            "verifyEmailWhenChanged": false,
+            "implicitEmailVerificationAllowed": true
+          },
+          "passwordEncryptionConfiguration": {
+            "encryptionScheme": "leaguejoe-password-encryptor",
+            "encryptionSchemeFactor": 24000,
+            "modifyEncryptionSchemeOnLogin": true
+          },
+          "jwtConfiguration": {
+            "refreshTokenTimeToLiveInMinutes": 43200,
+            "timeToLiveInSeconds": 3600
+          },
+          "loginConfiguration": {
+            "requireAuthentication": true
+          },
+          "passwordValidationRules": {
+            "maxLength": 256,
+            "minLength": 8,
+            "requireMixedCase": true,
+            "requireNonAlpha": false,
+            "requireNumber": true
+          },
+          "multiFactorConfiguration": {
+            "loginPolicy": "Disabled"
+          },
+          "webAuthnConfiguration": {
+            "enabled": false
+          },
+          "themeId": "#{themeId}",
+          "state": "Active",
+          "requireUniqueUsername": true
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/application/#{leagueJoeLocalAppId}",
+      "tenantId": "#{leagueJoeLocalTenantId}",
+      "body": {
+        "application": {
+          "id": "#{leagueJoeLocalAppId}",
+          "name": "League Joe Local",
+          "jwtConfiguration": {
+            "enabled": true,
+            "refreshTokenTimeToLiveInMinutes": 43200,
+            "timeToLiveInSeconds": 3600
+          },
+          "lambdaConfiguration": {
+            "userinfoPopulateId": "#{userInfoPopulateLambdaId}"
+          },
+          "oauthConfiguration": {
+            "authorizedOriginURLs": [
+              "http://leaguejoe.local:*",
+              "http://leaguejoe.local",
+              "http://localhost:*",
+              "http://localhost"
+            ],
+            "authorizedRedirectURLs": [
+              "http://leaguejoe.local/oauth/callback",
+              "http://leaguejoe.local/oauth/callback.php"
+            ],
+            "urlValidation": "allow_wildcard",
+            "clientId": "#{leagueJoeLocalAppId}",
+            "clientSecret": "#{client_secret}",
+            "enabledGrants": [
+              "authorization_code",
+              "refresh_token"
+            ],
+            "generateRefreshTokens": true,
+            "logoutURL": "http://leaguejoe.local/?action=logout",
+            "providedScopePolicy": {
+              "email": {
+                "enabled": true,
+                "required": false
+              },
+              "profile": {
+                "enabled": true,
+                "required": false
+              }
+            },
+            "requireRegistration": true,
+            "enabled": true
+          },
+          "registrationConfiguration": {
+            "enabled": true,
+            "confirmPassword": true,
+            "email": {
+              "enabled": true,
+              "required": true,
+              "verificationRequired": false
+            },
+            "loginType": "email_or_username",
+            "username": {
+              "enabled": true,
+              "required": true
+            },
+            "password": {
+              "enabled": true,
+              "required": true,
+              "minimumLength": 8,
+              "requireUppercase": true,
+              "requireLowercase": true,
+              "requireNumbers": true
+            }
+          },
+          "loginConfiguration": {
+            "allowTokenRefresh": true,
+            "generateRefreshTokens": true,
+            "requireAuthentication": true
+          },
+          "state": "Active"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{roleGlobalAdmin}",
+      "tenantId": "#{leagueJoeLocalTenantId}",
+      "body": {
+        "role": {
+          "id": "#{roleGlobalAdmin}",
+          "name": "Global Admin",
+          "description": "Global administrator with full access"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{roleRookie}",
+      "tenantId": "#{leagueJoeLocalTenantId}",
+      "body": {
+        "role": {
+          "id": "#{roleRookie}",
+          "name": "Rookie",
+          "description": "New player role"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{rolePlayer}",
+      "tenantId": "#{leagueJoeLocalTenantId}",
+      "body": {
+        "role": {
+          "id": "#{rolePlayer}",
+          "name": "Player",
+          "description": "Standard player role"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{roleCoach}",
+      "tenantId": "#{leagueJoeLocalTenantId}",
+      "body": {
+        "role": {
+          "id": "#{roleCoach}",
+          "name": "Coach",
+          "description": "Coach role"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/user/#{adminId}",
+      "tenantId": "#{defaultTenantId}",
+      "body": {
+        "user": {
+          "username": "#{adminUsername}",
+          "email": "#{adminEmail}",
+          "password": "#{adminPassword}",
+          "data": {
+            "Company": "League Joe"
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/api/user/registration/#{adminId}",
+      "body": {
+        "registration": {
+          "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+          "username": "#{adminUsername}",
+          "skipRegistrationVerification": true,
+          "roles": [
+            "admin"
+          ]
+        }
+      }
+    }
+  ] 
+} 
