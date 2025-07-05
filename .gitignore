@@ -5,3 +5,4 @@ local_setup/
 server_setup/
 **/errorlog
 fa_lj_template/
+**/*.log

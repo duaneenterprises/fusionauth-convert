@@ -30,7 +30,7 @@ class FusionAuthClient
     public function getUserByEmail(string $email): ?array
     {
         try {
-            $response = $this->makeRequest('GET', "/api/user/search", [
+            $response = $this->makeRequest('POST', "/api/user/search", [
                 'search' => [
                     'queryString' => $email,
                     'queryStringFields' => ['email']
@@ -69,8 +69,13 @@ class FusionAuthClient
             'users' => [ $userData ]
         ]);
         
-        // FusionAuth returns an empty body on success
-        return $response;
+        // FusionAuth returns the imported user data in the response
+        if (isset($response['users']) && !empty($response['users'])) {
+            return $response['users'][0];
+        }
+        
+        // If no user data returned, try to get the user by email
+        return $this->getUserByEmail($userData['email']) ?? [];
     }
     
     /**
@@ -185,65 +190,70 @@ class FusionAuthClient
     private function makeRequest(string $method, string $endpoint, ?array $data = null): array
     {
         $url = $this->baseUrl . $endpoint;
-        
         $headers = [
             'Content-Type: application/json',
-            'X-FusionAuth-TenantId: ' . $this->tenantId,
-            'Authorization: ' . $this->apiKey
+            'Authorization: ' . $this->apiKey,
+            'X-FusionAuth-TenantId: ' . $this->tenantId
         ];
         
-        $context = [
-            'http' => [
-                'method' => $method,
-                'header' => implode("\r\n", $headers),
-                'timeout' => $this->timeout,
-                'ignore_errors' => true
-            ]
-        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_VERBOSE => true
+        ]);
         
         if ($data !== null) {
-            $context['http']['content'] = json_encode($data);
+            $jsonData = json_encode($data);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonData);
+            
+            // Debug: Log the exact request being sent
+            if (defined('LOG_LEVEL') && LOG_LEVEL === 'DEBUG') {
+                echo "DEBUG: Making request to: $url\n";
+                echo "DEBUG: Method: $method\n";
+                echo "DEBUG: Headers:\n";
+                foreach ($headers as $header) {
+                    echo "DEBUG:   $header\n";
+                }
+                echo "DEBUG: Request Body:\n";
+                echo "DEBUG: " . json_encode($data, JSON_PRETTY_PRINT) . "\n";
+            }
         }
         
-        if (!$this->verifySsl) {
-            $context['ssl'] = [
-                'verify_peer' => false,
-                'verify_peer_name' => false
-            ];
+        $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error = curl_error($curl);
+        
+        // Debug: Log the response
+        if (defined('LOG_LEVEL') && LOG_LEVEL === 'DEBUG') {
+            echo "DEBUG: HTTP Status Code: $httpCode\n";
+            echo "DEBUG: cURL Error: " . ($error ?: 'None') . "\n";
+            echo "DEBUG: Response Body: " . $response . "\n";
         }
         
-        $context = stream_context_create($context);
-        $response = file_get_contents($url, false, $context);
+        curl_close($curl);
         
-        if ($response === false) {
-            throw new Exception("Failed to make request to FusionAuth API: " . error_get_last()['message'] ?? 'Unknown error');
+        if ($error) {
+            throw new Exception("cURL error: $error");
         }
-        
-        $httpCode = $this->getHttpResponseCode($http_response_header);
-        $responseData = json_decode($response, true);
         
         if ($httpCode >= 400) {
-            $errorMessage = $responseData['message'] ?? 'Unknown error';
-            if (isset($responseData['fieldErrors'])) {
-                $errorMessage .= ' - Field errors: ' . json_encode($responseData['fieldErrors']);
+            $errorMessage = "FusionAuth API error ($httpCode)";
+            if ($response) {
+                $errorData = json_decode($response, true);
+                if ($errorData && isset($errorData['fieldErrors'])) {
+                    $errorMessage .= " - Field errors: " . json_encode($errorData['fieldErrors']);
+                } else {
+                    $errorMessage .= " - " . $response;
+                }
             }
-            throw new Exception("FusionAuth API error ({$httpCode}): {$errorMessage}");
+            throw new Exception($errorMessage);
         }
         
-        return $responseData;
-    }
-    
-    /**
-     * Extract HTTP response code from headers
-     */
-    private function getHttpResponseCode(array $headers): int
-    {
-        foreach ($headers as $header) {
-            if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/', $header, $matches)) {
-                return (int)$matches[1];
-            }
-        }
-        return 200; // Default to 200 if we can't parse the code
+        return $response ? json_decode($response, true) : [];
     }
     
     /**

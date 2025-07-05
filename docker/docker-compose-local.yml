@@ -80,7 +80,7 @@ services:
       - ./kickstart-local.json:/usr/local/fusionauth/kickstart/kickstart.json:ro
       - ./../leaguejoe-password-encryptor/leaguejoe-password-encryption-1.0.1.jar:/usr/local/fusionauth/plugins/leaguejoe-password-encryption-1.0.1.jar:ro
       - ./fusionauth-local.properties:/usr/local/fusionauth/config/fusionauth.properties:ro
-      - ./leaguejoe-css-only-theme.css:/usr/local/fusionauth/kickstart/leaguejoe-css-only-theme.css:ro
+      - ./../leaguejoe-css-only-theme.css:/usr/local/fusionauth/kickstart/leaguejoe-css-only-theme.css:ro
 
 networks:
   leaguejoe:
