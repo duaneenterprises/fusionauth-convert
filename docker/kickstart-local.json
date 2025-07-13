@@ -1,26 +1,19 @@
 {
   "variables": {
-    "defaultTenantId": "7356c516-025c-61f5-21b8-05a0d6319a8a",
-    "leagueJoeLocalAppId": "45562ca3-d36c-4d0a-af6f-c0c5abfffffd",
-    "client_secret": "1d6c464b-4e84-4a06-96e1-7c55b22d1522",
+    "defaultTenantId": "72Fl7gWN8eQ9EHwf8jpy6mbb4DwRXNZbpu0MygsUDU",
+    "leagueJoeLocalAppId": "#{UUID()}",
+    "client_secret": "#{UUID()}",
     "leagueJoeLocalTenantId": "#{UUID()}",
     "themeId": "#{UUID()}",
-    "userInfoPopulateLambdaId": "#{UUID()}",
-    "roleGlobalAdmin": "#{UUID()}",
-    "roleRookie": "#{UUID()}",
-    "roleCoach": "#{UUID()}",
-    "rolePlayer": "#{UUID()}",
     "adminId": "#{UUID()}",
     "adminEmail": "duane+leaguejoe@duaneenterprises.com",
     "adminPassword": "Password1!",
     "adminUsername": "fusionadmin"
   },
-  {
-    "licenseId": "72Fl7gWN8eQ9EHwf8jpy6mbb4DwRXNZbpu0MygsUDU"
-  },
+  "licenseId": "72Fl7gWN8eQ9EHwf8jpy6mbb4DwRXNZbpu0MygsUDU",
   "apiKeys": [
     {
-      "key": "qmYikM57ADP1pUl3lEZlO6DBu-3ah6RGcU0iWHeF5JlxrOs-vtOJLQBD",
+      "key": "#{UUID()}",
       "description": "Standard development API key"
     }
   ],
@@ -41,18 +34,6 @@
       "body": {
         "theme": {
           "stylesheet": "@{leaguejoe-css-only-theme.css}"
-        }
-      }
-    },
-    {
-      "method": "POST",
-      "url": "/api/lambda/#{userInfoPopulateLambdaId}",
-      "body": {
-        "lambda": {
-          "id": "#{userInfoPopulateLambdaId}",
-          "name": "User Info Populate Lambda",
-          "type": "UserInfoPopulate",
-          "body": "function populate(user) {\n  return JSON.stringify(user);\n}"
         }
       }
     },
@@ -118,9 +99,6 @@
             "enabled": true,
             "refreshTokenTimeToLiveInMinutes": 43200,
             "timeToLiveInSeconds": 3600
-          },
-          "lambdaConfiguration": {
-            "userinfoPopulateId": "#{userInfoPopulateLambdaId}"
           },
           "oauthConfiguration": {
             "authorizedOriginURLs": [
@@ -190,11 +168,10 @@
     },
     {
       "method": "POST",
-      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{roleGlobalAdmin}",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/",
       "tenantId": "#{leagueJoeLocalTenantId}",
       "body": {
         "role": {
-          "id": "#{roleGlobalAdmin}",
           "name": "Global Admin",
           "description": "Global administrator with full access"
         }
@@ -202,11 +179,10 @@
     },
     {
       "method": "POST",
-      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{roleRookie}",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/",
       "tenantId": "#{leagueJoeLocalTenantId}",
       "body": {
         "role": {
-          "id": "#{roleRookie}",
           "name": "Rookie",
           "description": "New player role"
         }
@@ -214,11 +190,10 @@
     },
     {
       "method": "POST",
-      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{rolePlayer}",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/",
       "tenantId": "#{leagueJoeLocalTenantId}",
       "body": {
         "role": {
-          "id": "#{rolePlayer}",
           "name": "Player",
           "description": "Standard player role"
         }
@@ -226,11 +201,10 @@
     },
     {
       "method": "POST",
-      "url": "/api/application/#{leagueJoeLocalAppId}/role/#{roleCoach}",
+      "url": "/api/application/#{leagueJoeLocalAppId}/role/",
       "tenantId": "#{leagueJoeLocalTenantId}",
       "body": {
         "role": {
-          "id": "#{roleCoach}",
           "name": "Coach",
           "description": "Coach role"
         }
