@@ -16,6 +16,9 @@
     "adminPassword": "Password1!",
     "adminUsername": "fusionadmin"
   },
+  {
+    "licenseId": "1234567890",
+  },
   "apiKeys": [
     {
       "key": "qmYikM57ADP1pUl3lEZlO6DBu-3ah6RGcU0iWHeF5JlxrOs-vtOJLQBD",
@@ -156,7 +159,8 @@
             ],
             "authorizedRedirectURLs": [
               "http://netstuffers1.com/oauth/callback",
-              "http://netstuffers1.com/oauth/callback.php"
+              "http://netstuffers1.com/oauth/callback.php",
+              "http://netstuffers1.com/?action=logout"
             ],
             "clientId": "#{leagueJoeQAAppId}",
             "clientSecret": "#{UUID()}",
@@ -236,7 +240,9 @@
               "http://leaguejoe.com/oauth/callback",
               "https://leaguejoe.com/oauth/callback",
               "http://leaguejoe.com/oauth/callback.php",
-              "https://leaguejoe.com/oauth/callback.php"
+              "https://leaguejoe.com/oauth/callback.php",
+              "http://leaguejoe.com/?action=logout",
+              "https://leaguejoe.com/?action=logout"
             ],
             "clientId": "#{leagueJoeAppId}",
             "clientSecret": "#{UUID()}",

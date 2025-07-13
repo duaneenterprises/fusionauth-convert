@@ -121,47 +121,89 @@ class FusionAuthClient
         $mapping = $config['user_mapping'];
         $roleMapping = $config['role_mapping'];
         
+        // Normalize confirmed to a boolean
+        $confirmed = (bool)($user[$mapping['confirmed_field']] ?? false);
+        
         $userData = [
-            'email' => $user[$mapping['email_field']] ?? '',
-            'username' => $user[$mapping['username_field']] ?? '',
-            'password' => $user[$mapping['password_field']] ?? '',
-            'verified' => (bool)($user[$mapping['confirmed_field']] ?? false),
+            'sendSetPasswordEmail' => false,
+            'skipVerification' => true,
             'active' => (bool)($user[$mapping['active_field']] ?? true),
-            'data' => [],
-            // Password import fields from ImportUsers logic
+            'data' => [
+                'displayName' => $user[$mapping['first_name_field']] ?? '',
+                'jerseyName' => $user['jersey_name'] ?? null,
+                'jerseyNumber' => $user['jersey_number'] ?? null,
+                'title' => $user['title'] ?? null,
+                'company' => $user['company'] ?? null,
+                'phoneNumber' => $user['phone_number'] ?? null,
+                'address' => [
+                    'street' => $user['street_address'] ?? null,
+                    'city' => $user['city_address'] ?? null,
+                    'state' => $user['state_address'] ?? null,
+                    'zipCode' => $user['zip_code'] ?? null,
+                    'country' => $user['country'] ?? null
+                ],
+                'confirmed' => $confirmed,
+                'approved' => (bool)($user['approved'] ?? false),
+                'originalCreated' => $user['created'] ?? null,
+                'originalUpdated' => $user['updated'] ?? null
+            ],
+            'email' => $user[$mapping['email_field']] ?? '',
             'encryptionScheme' => 'leaguejoe-password-encryptor',
             'factor' => 1,
-            'salt' => $user['salt'] ?? '',
+            'firstName' => $user[$mapping['first_name_field']] ?? '',
+            'fullName' => $this->buildFullName($user, $mapping),
+            'imageUrl' => $user['avatar'] ? $config['web_url'] . $user['avatar'] : null,
+            'lastName' => $user[$mapping['last_name_field']] ?? '',
+            'middleName' => $user['middle_name'] ?? '',
+            'password' => $user[$mapping['password_field']] ?? '',
             'passwordChangeRequired' => false,
+            'preferredLanguages' => ['en'],
+            'salt' => $user['salt'] ?? '',
             'twoFactorEnabled' => false,
-            'usernameStatus' => 'ACTIVE'
+            'usernameStatus' => 'ACTIVE',
+            'username' => $user[$mapping['username_field']] ?? '',
+            'verified' => $confirmed,
+            'role' => '', // Empty role field to match ImportUsers
+            'registrations' => [
+                [
+                    'applicationId' => $config['fusionauth']['app_ids'][0], // Use first app ID
+                    'username' => $user[$mapping['username_field']] ?? '',
+                    'usernameStatus' => 'ACTIVE',
+                    'verified' => $confirmed,
+                    'roles' => [$this->getRoleForLevel($user[$roleMapping['role_field']] ?? null)]
+                ]
+            ]
         ];
         
-        // Add first and last name if available
-        if (isset($user[$mapping['first_name_field']])) {
-            $userData['firstName'] = $user[$mapping['first_name_field']];
+        // Add birthdate if available (use ISO format like ImportUsers)
+        if (isset($user['birthdate']) && $user['birthdate']) {
+            $userData['birthDate'] = date('Y-m-d', strtotime($user['birthdate']));
         }
         
-        if (isset($user[$mapping['last_name_field']])) {
-            $userData['lastName'] = $user[$mapping['last_name_field']];
-        }
-        
-        // Map user level to role
-        if (isset($user[$roleMapping['role_field']])) {
-            $userLevel = $user[$roleMapping['role_field']];
-            $role = $this->getRoleForLevel($userLevel);
-            $userData['data']['user_level'] = $userLevel;
-            $userData['data']['mapped_role'] = $role;
-        }
-        
-        // Add any additional user data
-        foreach ($user as $key => $value) {
-            if (!in_array($key, array_values($mapping)) && $key !== 'salt') {
-                $userData['data'][$key] = $value;
-            }
+        // Add gender if available
+        if (isset($user['gender']) && $user['gender']) {
+            $userData['data']['gender'] = $user['gender'];
         }
         
         return $userData;
+    }
+    
+    /**
+     * Build full name from available name components
+     */
+    private function buildFullName(array $user, array $mapping): string
+    {
+        $parts = [];
+        if (!empty($user[$mapping['first_name_field']])) {
+            $parts[] = $user[$mapping['first_name_field']];
+        }
+        if (!empty($user['middle_name'])) {
+            $parts[] = $user['middle_name'];
+        }
+        if (!empty($user[$mapping['last_name_field']])) {
+            $parts[] = $user[$mapping['last_name_field']];
+        }
+        return implode(' ', $parts);
     }
     
     /**
@@ -244,10 +286,22 @@ class FusionAuthClient
             $errorMessage = "FusionAuth API error ($httpCode)";
             if ($response) {
                 $errorData = json_decode($response, true);
-                if ($errorData && isset($errorData['fieldErrors'])) {
-                    $errorMessage .= " - Field errors: " . json_encode($errorData['fieldErrors']);
+                if ($errorData) {
+                    if (isset($errorData['fieldErrors'])) {
+                        $errorMessage .= " - Field errors: " . json_encode($errorData['fieldErrors']);
+                    }
+                    if (isset($errorData['generalErrors'])) {
+                        $errorMessage .= " - General errors: " . json_encode($errorData['generalErrors']);
+                    }
+                    if (isset($errorData['message'])) {
+                        $errorMessage .= " - Message: " . $errorData['message'];
+                    }
+                    // If no specific error details, include the full response
+                    if (!isset($errorData['fieldErrors']) && !isset($errorData['generalErrors']) && !isset($errorData['message'])) {
+                        $errorMessage .= " - Full response: " . $response;
+                    }
                 } else {
-                    $errorMessage .= " - " . $response;
+                    $errorMessage .= " - Raw response: " . $response;
                 }
             }
             throw new Exception($errorMessage);

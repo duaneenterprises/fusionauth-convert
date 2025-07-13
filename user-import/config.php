@@ -39,13 +39,14 @@ return [
         'api_key' => $_ENV['FUSIONAUTH_API_KEY'] ?? '',
         'tenant_id' => $_ENV['FUSIONAUTH_TENANT_ID'] ?? '',
         'timeout' => 30,
-        'verify_ssl' => false
+        'verify_ssl' => false,
+        'app_ids' => [
+            $_ENV['LEAGUE_JOE_APP_ID'] ?? '45562ca3-d36c-4d0a-af6f-c0c5abfffffd'
+        ]
     ],
     
-    // League Joe application IDs to register users for
-    'league_joe_app_ids' => [
-        $_ENV['LEAGUE_JOE_APP_ID'] ?? '45562ca3-d36c-4d0a-af6f-c0c5abfffffd'
-    ],
+    // Web URL for avatar images
+    'web_url' => $_ENV['WEB_URL'] ?? 'http://leaguejoe.local',
     
     // Processing configuration
     'batch_size' => (int)($_ENV['BATCH_SIZE'] ?? 100),

@@ -57,17 +57,10 @@ class UserImport
         ]);
         
         try {
-            // Step 1: Import users to FusionAuth
-            if (!$registerOnly) {
-                $this->importUsers($dryRun);
-            }
+            // Import users to FusionAuth (includes registrations in payload)
+            $this->importUsers($dryRun);
             
-            // Step 2: Register users for League Joe applications
-            if (!$importOnly) {
-                $this->registerUsersForApps($dryRun);
-            }
-            
-            // Step 3: Print summary
+            // Print summary
             $this->printSummary();
             
         } catch (Exception $e) {
@@ -157,20 +150,23 @@ class UserImport
         ];
         
         try {
-            // Check if user already exists in FusionAuth
-            $existingUser = $this->fa->getUserByEmail($user['email']);
-            
-            if ($existingUser) {
-                $result['status'] = 'skipped';
-                $result['message'] = 'User already exists in FusionAuth';
-                $result['fusionauth_user_id'] = $existingUser['id'];
+            // In dry-run mode, skip existence check to avoid API calls
+            if (!$dryRun) {
+                // Check if user already exists in FusionAuth
+                $existingUser = $this->fa->getUserByEmail($user['email']);
                 
-                $this->logger->debug('User skipped (already exists)', [
-                    'email' => $user['email'],
-                    'fusionauth_id' => $existingUser['id']
-                ]);
-                
-                return $result;
+                if ($existingUser) {
+                    $result['status'] = 'skipped';
+                    $result['message'] = 'User already exists in FusionAuth';
+                    $result['fusionauth_user_id'] = $existingUser['id'];
+                    
+                    $this->logger->debug('User skipped (already exists)', [
+                        'email' => $user['email'],
+                        'fusionauth_id' => $existingUser['id']
+                    ]);
+                    
+                    return $result;
+                }
             }
             
             if ($dryRun) {
@@ -223,130 +219,7 @@ class UserImport
     }
     
     /**
-     * Register users for League Joe applications
-     */
-    private function registerUsersForApps(bool $dryRun): void
-    {
-        $this->logger->info('Starting user registration phase');
-        
-        $appIds = $this->config['league_joe_app_ids'];
-        $totalRegistrations = 0;
-        $totalSkipped = 0;
-        $totalFailed = 0;
-        
-        foreach ($this->importResults as $importResult) {
-            if ($importResult['status'] !== 'imported' && $importResult['status'] !== 'skipped') {
-                continue; // Skip users that failed to import
-            }
-            
-            $faUserId = $importResult['fusionauth_user_id'];
-            if (!$faUserId) {
-                continue;
-            }
-            
-            foreach ($appIds as $appId) {
-                $result = $this->processUserRegistration($faUserId, $appId, $importResult, $dryRun);
-                
-                switch ($result['status']) {
-                    case 'registered':
-                        $totalRegistrations++;
-                        break;
-                    case 'skipped':
-                        $totalSkipped++;
-                        break;
-                    case 'failed':
-                        $totalFailed++;
-                        break;
-                }
-                
-                $this->registrationResults[] = $result;
-            }
-        }
-        
-        $this->logger->info('User registration phase completed', [
-            'total_registrations' => $totalRegistrations,
-            'total_skipped' => $totalSkipped,
-            'total_failed' => $totalFailed
-        ]);
-    }
-    
-    /**
-     * Process a single user registration
-     */
-    private function processUserRegistration(string $faUserId, string $appId, array $importResult, bool $dryRun): array
-    {
-        $result = [
-            'user_id' => $importResult['user_id'],
-            'email' => $importResult['email'],
-            'fusionauth_user_id' => $faUserId,
-            'app_id' => $appId,
-            'status' => 'unknown',
-            'message' => ''
-        ];
-        
-        try {
-            // Check if user is already registered for this app
-            $existingRegistration = $this->fa->getUserRegistration($faUserId, $appId);
-            
-            if ($existingRegistration) {
-                $result['status'] = 'skipped';
-                $result['message'] = 'User already registered for this application';
-                
-                $this->logger->debug('Registration skipped (already exists)', [
-                    'email' => $importResult['email'],
-                    'app_id' => $appId
-                ]);
-                
-                return $result;
-            }
-            
-            if ($dryRun) {
-                $result['status'] = 'skipped';
-                $result['message'] = 'Dry run - would register user';
-                
-                $this->logger->debug('User would be registered (dry run)', [
-                    'email' => $importResult['email'],
-                    'app_id' => $appId
-                ]);
-                
-                return $result;
-            }
-            
-            // Register user for the application
-            $registration = $this->fa->registerUserForApp($faUserId, $appId, $importResult);
-            
-            $result['status'] = 'registered';
-            $result['message'] = 'User successfully registered for application';
-            
-            $this->logger->info('User registered successfully', [
-                'email' => $importResult['email'],
-                'app_id' => $appId
-            ]);
-            
-        } catch (Exception $e) {
-            $result['status'] = 'failed';
-            $result['message'] = $e->getMessage();
-            
-            $this->logger->error('User registration failed', [
-                'email' => $importResult['email'],
-                'app_id' => $appId,
-                'error' => $e->getMessage()
-            ]);
-            
-            $this->errors[] = [
-                'type' => 'registration',
-                'user_id' => $importResult['user_id'],
-                'email' => $importResult['email'],
-                'app_id' => $appId,
-                'error' => $e->getMessage()
-            ];
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * Print summary of import and registration results
+     * Print summary of import results
      */
     private function printSummary(): void
     {
@@ -355,10 +228,6 @@ class UserImport
         // Import summary
         $importStats = $this->getImportStats();
         $this->logger->info('User Import Statistics', $importStats);
-        
-        // Registration summary
-        $registrationStats = $this->getRegistrationStats();
-        $this->logger->info('User Registration Statistics', $registrationStats);
         
         // Error summary
         if (!empty($this->errors)) {
@@ -381,17 +250,11 @@ class UserImport
         echo "  - Imported: " . $importStats['imported'] . "\n";
         echo "  - Skipped: " . $importStats['skipped'] . "\n";
         echo "  - Failed: " . $importStats['failed'] . "\n";
-        
-        echo "\nUser Registrations:\n";
-        echo "  - Total: " . count($this->registrationResults) . "\n";
-        echo "  - Registered: " . $registrationStats['registered'] . "\n";
-        echo "  - Skipped: " . $registrationStats['skipped'] . "\n";
-        echo "  - Failed: " . $registrationStats['failed'] . "\n";
+        echo "\n";
         
         if (!empty($this->errors)) {
-            echo "\nErrors: " . count($this->errors) . "\n";
+            echo "Errors: " . count($this->errors) . "\n";
         }
-        
         echo "=== END SUMMARY ===\n";
     }
     

@@ -15,6 +15,9 @@
     "adminPassword": "Password1!",
     "adminUsername": "fusionadmin"
   },
+  {
+    "licenseId": "72Fl7gWN8eQ9EHwf8jpy6mbb4DwRXNZbpu0MygsUDU"
+  },
   "apiKeys": [
     {
       "key": "qmYikM57ADP1pUl3lEZlO6DBu-3ah6RGcU0iWHeF5JlxrOs-vtOJLQBD",
@@ -128,7 +131,8 @@
             ],
             "authorizedRedirectURLs": [
               "http://leaguejoe.local/oauth/callback",
-              "http://leaguejoe.local/oauth/callback.php"
+              "http://leaguejoe.local/oauth/callback.php",
+              "http://leaguejoe.local/?action=logout"
             ],
             "urlValidation": "allow_wildcard",
             "clientId": "#{leagueJoeLocalAppId}",
@@ -139,6 +143,7 @@
             ],
             "generateRefreshTokens": true,
             "logoutURL": "http://leaguejoe.local/?action=logout",
+            "postLogoutRedirectURL": "http://leaguejoe.local/?action=logout",
             "providedScopePolicy": {
               "email": {
                 "enabled": true,
